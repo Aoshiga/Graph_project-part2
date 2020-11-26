@@ -14,7 +14,7 @@ public class Main {
             System.out.println(flowNetwork.toDotString());
         } catch (FileNotFoundException e) {
             System.out.println("Erreur : Aucun fichier trouvé");
-            System.out.println(e);
+            //System.out.println(e);
         }
     }
 }

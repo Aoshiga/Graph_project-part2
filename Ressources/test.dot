@@ -1,5 +1,5 @@
 digraph flowNetwork {
-rankdir =" LR ";
+    rankdir =" LR ";
     s -> 1 [label=8];
     s -> 2 [label=6];
     1 -> 3 [label=6];
