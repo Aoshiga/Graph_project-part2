@@ -7,5 +7,6 @@
     <SOURCES>
       <root url="file://$PROJECT_DIR$/../graph_project/src" />
     </SOURCES>
+    <jarDirectory url="file://$PROJECT_DIR$/../graph_project" recursive="false" />
   </library>
 </component>
