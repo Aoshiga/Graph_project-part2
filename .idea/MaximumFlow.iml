@@ -8,17 +8,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library" exported="">
-      <library>
-        <CLASSES>
-          <root url="file://$MODULE_DIR$/../graph_project" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$MODULE_DIR$/../graph_project/src/main/java" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="graph_project" level="project" />
   </component>
 </module>

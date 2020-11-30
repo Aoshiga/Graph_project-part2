@@ -49,7 +49,7 @@ public class FlowNetwork {
                 String label = reader.next().replaceAll("[^0-9]", "");
                 weight = Integer.parseInt(label);
 
-                //System.out.println("from : " + from_id + " - to : " + to_id + " - with weight : " + weight);
+                System.out.println("from : " + from_id + " - to : " + to_id + " - with weight : " + weight);
 
                 graf.addEdge(from_id, to_id, weight);
             }
@@ -68,19 +68,13 @@ public class FlowNetwork {
         for (Map.Entry<Node, List<Node>> entry : graf.getAdjList().entrySet()) {
             Collections.sort(entry.getValue());
 
-            //System.out.println(entry);
-
-//            for (Node n : entry.getValue()) {
-//                System.out.println(n.getId());
-//            }
-
             for (Node to : entry.getValue()) {
                 dot.append("\t").append(( entry.getKey().getId() == 1 ? "s" : entry.getKey().getId() -1 ));
                 dot.append(" -> ");
                 dot.append(( to.getId() == biggestId ? "t" : to.getId() -1 ));
                 dot.append(" [label=\"");
                 dot.append(graf.getEdge(entry.getKey().getId(), to.getId()).getWeight());
-                dot.append("\"];\n");
+                dot.append("];\n");
             }
         }
         dot.append("}");
