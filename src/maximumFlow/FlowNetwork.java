@@ -68,12 +68,6 @@ public class FlowNetwork {
         for (Map.Entry<Node, List<Node>> entry : graf.getAdjList().entrySet()) {
             Collections.sort(entry.getValue());
 
-            System.out.println(entry);
-
-            for (Node n : entry.getValue()) {
-                System.out.println(n.getId());
-            }
-
             for (Node to : entry.getValue()) {
                 dot.append("\t").append(( entry.getKey().getId() == 1 ? "s" : entry.getKey().getId() -1 ));
                 dot.append(" -> ");

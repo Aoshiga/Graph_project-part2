@@ -1,12 +1,9 @@
 <component name="libraryTable">
   <library name="graph_project">
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/../graph_project" />
+      <root url="jar://$PROJECT_DIR$/../graph_project/graph_project.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="file://$PROJECT_DIR$/../graph_project/src" />
-    </SOURCES>
-    <jarDirectory url="file://$PROJECT_DIR$/../graph_project" recursive="false" />
+    <SOURCES />
   </library>
 </component>
