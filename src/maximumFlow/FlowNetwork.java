@@ -71,6 +71,24 @@ public class FlowNetwork {
         this.flows = new ArrayList<>();
     }
 
+    public Flow getFlow(Node from, Node to) {
+        for (Flow f : flows) {
+            if (f.getTo().getId() == to.getId() && f.getFrom().getId() == from.getId()) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    public Flow getFlow(Edge e) {
+        for (Flow f : flows) {
+            if (f.getTo().getId() == e.getTo().getId() && f.getFrom().getId() == e.getFrom().getId()) {
+                return f;
+            }
+        }
+        return null;
+    }
+
     /**
      * Returns a String representing the graph in the DOT formalism
      * @return a String representing the graph in the DOT formalism
@@ -107,17 +125,23 @@ public class FlowNetwork {
         return f
     end
      */
-    public FlowNetwork fordFulkerson() {
-        FlowNetwork rGraf = this.clone(); //residual graf
+    public int fordFulkerson() {
+        FlowNetwork inducedFlow = this.clone();
+        initFlow(inducedFlow);
+        FlowNetwork residualNetwork = this.clone();
 
-        initFlow(rGraf);
-
-        List<Node> bfs = rGraf.graf.getBFS();
-        while(bfs.contains(new Node(1)) && bfs.contains(new Node(999))) {
-
+        // List<Node> path = new ArrayList<Node>
+        // while(/**residualNetwork.existsAugmentingPath*/) {
+            // toDotFile(residualNetwork, path)
+            // update inducedFlow
+            // toDotFile(inducedFlow)
+            // residualNetwork = residualNetwork(inducedFlow);
+        // }
+        int maxFlow = 0;
+        for (Node s : inducedFlow.graf.getSuccessors(1)) {
+            maxFlow += getFlow(graf.getNode(1), s).getValue();
         }
-
-        return rGraf;
+        return maxFlow;
     }
 
     public List<Node> findAugmentingPath() {
@@ -142,7 +166,7 @@ public class FlowNetwork {
      * @param fn The flowNetwork who need to be initialise
      */
     private void initFlow(FlowNetwork fn) {
-        for (Flow f : fn.flows) f.flow = 0;
+        for (Flow f : fn.flows) f.setValue(0);
     }
 
     @Override

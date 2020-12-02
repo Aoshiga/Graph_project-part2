@@ -4,7 +4,7 @@ import m1graf2020.Node;
 
 public class Flow {
     Node to, from;
-    int flow;
+    int value;
 
     Flow() {}
 
@@ -13,10 +13,10 @@ public class Flow {
         this.to = new Node(to_id);
     }
 
-    Flow(int from_id, int to_id, int flow) {
+    Flow(int from_id, int to_id, int value) {
         this.from = new Node(from_id);
         this.to = new Node(to_id);
-        this.flow = flow;
+        this.value = value;
     }
 
     Flow(Node from, Node to) {
@@ -24,20 +24,20 @@ public class Flow {
         this.to = to;
     }
 
-    Flow(Node from, Node to, int flow) {
+    Flow(Node from, Node to, int value) {
         this.from = from;
         this.to = to;
-        this.flow = flow;
+        this.value = value;
     }
 
     public Node getFrom() { return from; }
 
     public Node getTo() { return to; }
 
-    public int getFlow() { return flow; }
+    public int getValue() { return value; }
 
-    public void setFlow(int weight) {
-        this.flow = flow;
+    public void setValue(int value) {
+        this.value = value;
     }
 
     @Override
