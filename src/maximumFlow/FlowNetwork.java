@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 // - fonction d'algo Ford principale
 // - fonction qui calcule le graphe résiduel
@@ -59,6 +60,8 @@ public class FlowNetwork {
 
                 graf.addEdge(from_id, to_id, weight);
                 flows.add(new Flow(from_id, to_id));
+                flows.add(new Flow(to_id, from_id));
+
             }
         }
     }
@@ -105,22 +108,87 @@ public class FlowNetwork {
     end
      */
     public FlowNetwork fordFulkerson() {
-        FlowNetwork fn = new FlowNetwork();
-        for (Edge n : this.graf.getEdgeList()) fn.graf.addEdge(n);
+        FlowNetwork rGraf = this.clone(); //residual graf
 
-        fn.graf.addNode(42);
-        return fn;
+        initFlow(rGraf);
+
+        List<Node> bfs = rGraf.graf.getBFS();
+        while(bfs.contains(new Node(1)) && bfs.contains(new Node(999))) {
+
+        }
+
+        return rGraf;
     }
 
-//    public FlowNetwork getResidualNetwork() {
-//
-//    }
+    public List<Node> findAugmentingPath() {
+        int currentNode = 999;
+        int maximumFlow = Integer.MAX_VALUE;
 
-    public void findAugmentingPath() {
+        List<Edge> inE = this.graf.getInEdges(currentNode);
+        List<Integer> visited = new ArrayList<>();
+        for (Edge e : inE)
+        {
+            maximumFlow = Integer.min(maximumFlow, e.getWeight());
+        }
 
     }
 
     public void increaseFlow() {
 
     }
+
+    /**
+     * Initialise all flow in FlowNetwork to 0
+     * @param fn The flowNetwork who need to be initialise
+     */
+    private void initFlow(FlowNetwork fn) {
+        for (Flow f : fn.flows) f.flow = 0;
+    }
+
+    @Override
+    public FlowNetwork clone() {
+        FlowNetwork fn = new FlowNetwork();
+        for (Edge n : this.graf.getEdgeList()) fn.graf.addEdge(n);
+        return fn;
+    }
+
+
+    public enum color{WHITE, GREY, BLACK}
+
+    /**
+     * Computes a breadth-first-search of the graph
+     * @return a list of nodes representing a breadth-first-search of the graph in order
+     */
+    public List<Node> getBFS() {
+        List<Node> bfs = new ArrayList<>();
+        Map<Node, Integer> index = new HashMap<>();
+        Graf.color[] color = new Graf.color[adjList.size()];
+
+        int cpt = 0;
+        for (Map.Entry<Node, List<Node>> entry : adjList.entrySet()) {
+            index.put(entry.getKey(), cpt);
+            color[cpt] = Graf.color.WHITE;
+            cpt++;
+        }
+
+        color[0] = Graf.color.GREY;
+        //PriorityQueue doesn't conserve the order : use Linked instead
+        LinkedBlockingQueue<Node> queue = new LinkedBlockingQueue<>();
+        queue.add(new Node(1));
+
+        while (!queue.isEmpty()) {
+            Node u = queue.poll();
+            for (Node n : getSuccessors(u)) {
+                if (color[index.get(n)] == Graf.color.WHITE) {
+                    color[index.get(n)] = Graf.color.GREY;
+                    queue.add(n);
+                }
+            }
+            color[index.get(u)] = Graf.color.BLACK;
+            bfs.add(u);
+        }
+
+        return bfs;
+    }
+
 }
