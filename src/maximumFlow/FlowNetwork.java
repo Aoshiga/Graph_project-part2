@@ -1,5 +1,6 @@
 package maximumFlow;
 
+import m1graf2020.Edge;
 import m1graf2020.Graf;
 import m1graf2020.Node;
 
@@ -8,8 +9,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+// - fonction d'algo Ford principale
+// - fonction qui calcule le graphe résiduel
+// - fonction qui trouve un chemin augmenté dans un graphe augmenté
+// - fonction qui augmente le flow du flowNetwork
+// - toDotString doit prendre en compte deux cas : graphe résiduel et flowNetwork
 public class FlowNetwork {
-    Graf graf;
+    public Graf graf;
+    List<Flow> flows;
     /**
      * Builds a flow network from a Dot file
      * @param file file to be read, must be .dot file
@@ -24,6 +31,7 @@ public class FlowNetwork {
         if (!extension.equals("dot")) throw new IOException("File is not .dot");
 
         graf = new Graf();
+        flows = new ArrayList<>();
         Scanner reader = new Scanner(new FileReader(file));
 
         int from_id;
@@ -49,13 +57,15 @@ public class FlowNetwork {
                 String label = reader.next().replaceAll("[^0-9]", "");
                 weight = Integer.parseInt(label);
 
-                System.out.println("from : " + from_id + " - to : " + to_id + " - with weight : " + weight);
-
                 graf.addEdge(from_id, to_id, weight);
+                flows.add(new Flow(from_id, to_id));
             }
         }
+    }
 
-        System.out.println("\n ---- \n");
+    FlowNetwork() {
+        this.graf = new Graf();
+        this.flows = new ArrayList<>();
     }
 
     /**
@@ -74,11 +84,43 @@ public class FlowNetwork {
                 dot.append(( to.getId() == biggestId ? "t" : to.getId() -1 ));
                 dot.append(" [label=\"");
                 dot.append(graf.getEdge(entry.getKey().getId(), to.getId()).getWeight());
-                dot.append("];\n");
+                dot.append("\"];\n");
             }
         }
         dot.append("}");
 
         return dot.toString();
+    }
+
+    /**
+    Input : G = (V,E) the flow network graph, s belonging to V the source state of the
+    network, t belonging to V the sink state of the network
+    Output : f a maximum flow for G
+    begin
+    Initialize flow f to 0;
+    while there exists an augmenting path p do
+        increase the flow f along p
+    end while
+        return f
+    end
+     */
+    public FlowNetwork fordFulkerson() {
+        FlowNetwork fn = new FlowNetwork();
+        for (Edge n : this.graf.getEdgeList()) fn.graf.addEdge(n);
+
+        fn.graf.addNode(42);
+        return fn;
+    }
+
+//    public FlowNetwork getResidualNetwork() {
+//
+//    }
+
+    public void findAugmentingPath() {
+
+    }
+
+    public void increaseFlow() {
+
     }
 }

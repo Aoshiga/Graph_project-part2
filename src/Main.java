@@ -10,7 +10,8 @@ public class Main {
         try {
             File f = new File("./Ressources/test.dot");
             FlowNetwork flowNetwork = new FlowNetwork(f);
-            System.out.println(flowNetwork.toDotString());
+            System.out.println(flowNetwork.fordFulkerson().graf.nbNodes());
+            System.out.println(flowNetwork.graf.nbNodes());
         } catch (FileNotFoundException e) {
             System.out.println("Erreur : Aucun fichier trouvé");
             //System.out.println(e);

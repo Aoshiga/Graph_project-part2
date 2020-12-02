@@ -1,6 +1,5 @@
 package maximumFlow;
 
-import m1graf2020.Edge;
 import m1graf2020.Node;
 
 public class Flow {
@@ -25,7 +24,7 @@ public class Flow {
         this.to = to;
     }
 
-    Flow(Node from, Node to, int weight) {
+    Flow(Node from, Node to, int flow) {
         this.from = from;
         this.to = to;
         this.flow = flow;
