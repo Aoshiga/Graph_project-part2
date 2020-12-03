@@ -89,6 +89,8 @@ public class FlowNetwork {
         return null;
     }
 
+    public boolean existsFlow(Flow f) {return flows.contains(f);}
+
     /**
      * Returns a String representing the graph in the DOT formalism
      * @return a String representing the graph in the DOT formalism
@@ -228,22 +230,28 @@ public class FlowNetwork {
         for (Node s : this.graf.getSuccessors(1)) {
             maxFlow += getFlow(graf.getNode(1), s).getValue();
         }
-
-        return maxFlow;
+        return this.maxFlow();
     }
 
-    /*public List<Node> findAugmentingPath() {
-        int currentNode = 999;
-        int maximumFlow = Integer.MAX_VALUE;
-
-        List<Edge> inE = this.graf.getInEdges(currentNode);
-        List<Integer> visited = new ArrayList<>();
-        for (Edge e : inE)
-        {
-            maximumFlow = Integer.min(maximumFlow, e.getWeight());
+    public static FlowNetwork makeResidual(FlowNetwork fn) {
+        FlowNetwork rn = new FlowNetwork();
+        for (Node n : fn.graf.getAllNodes()) rn.graf.addNode(n);
+        // for all nodes in fn
+        for (Node to : rn.graf.getAllNodes()) {
+            // for each out edge
+            for (Edge outEdge : fn.graf.getOutEdges(to)) {
+                int flow;
+                if (fn.existsFlow(fn.getFlow(to, outEdge.getFrom()))) flow = fn.getFlow(to, outEdge.getFrom()).getValue();
+                else flow = 0;
+                int weight = outEdge.getWeight() - flow;
+                // add an edge with weight equal to the weight of the out edge minus current flow on that edge in fn
+                rn.graf.addEdge(new Edge(to.getId()+1, outEdge.getFrom().getId()+1, weight));
+                // add a reverse edge with weight equal to the current flow on the outer edge in fn, if that flow is positive
+                if (flow > 0) rn.graf.addEdge(new Edge(outEdge.getFrom().getId()+1, to.getId()+1, flow));
+            }
         }
-
-    }*/
+        return rn;
+    }
 
     public void increaseFlow() {
 

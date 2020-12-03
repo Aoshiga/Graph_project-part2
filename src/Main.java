@@ -8,8 +8,9 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         try {
-            File f = new File("./Ressources/test.dot");
+            File f = new File("./Ressources/lectureFlowNetwork.dot");
             FlowNetwork flowNetwork = new FlowNetwork(f);
+            System.out.println(FlowNetwork.makeResidual(flowNetwork).toDotString());
             System.out.println(flowNetwork.toDotString());
             System.out.println(flowNetwork.graf.existsEdge(1, 2));
             System.out.println(flowNetwork.graf.existsEdge(1, 3));
