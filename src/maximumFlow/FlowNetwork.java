@@ -120,7 +120,9 @@ public class FlowNetwork {
      * @return a String representing the graph in the DOT formalism
      */
     public String toDotString(int graphNumber) {
-        StringBuilder dot = new StringBuilder("digraph {\n\trankdir=\"LR\";\n");
+        StringBuilder dot = new StringBuilder("digraph flow")
+            .append(graphNumber)
+            .append(" {\n\trankdir=\"LR\";\n");
         dot.append("label =\"(")
                 .append(graphNumber)
                 .append(") Flow induced from residual graph ")
@@ -174,12 +176,8 @@ public class FlowNetwork {
             int flowCapacity = Integer.MAX_VALUE;
 
             for(Node n : path) {
-                System.out.println(prevN + "   -   " + n);
-
                 if(prevN != null) {
-                    System.out.println(residualNetwork.graf.getEdge(prevN.getId(), n.getId()));
                     int currentWeight = residualNetwork.graf.getEdge(prevN.getId(), n.getId()).getWeight();
-                    System.out.println(currentWeight);
                     flowCapacity = Integer.min(flowCapacity, currentWeight);
                 }
                 prevN = n;
@@ -195,7 +193,7 @@ public class FlowNetwork {
                 prevN = n;
             }
             // toDotFile(inducedFlow)
-            inducedFlow.toDotString(cpt);
+            System.out.println(inducedFlow.toDotString(cpt));
 
             residualNetwork = makeResidual(inducedFlow);
             /*prevN = null;
@@ -276,8 +274,8 @@ public class FlowNetwork {
      * Computes a breadth-first-search of the graph
      * @return true if a path is fine, false instead
      */
-    public boolean existsAugmentingPath(LinkedHashSet<Node> choosenPath){
-        choosenPath.clear();
+    public boolean existsAugmentingPath(LinkedHashSet<Node> chosenPath){
+        chosenPath.clear();
         Map<Node, Integer> index = new HashMap<>();
         TreeMap<Node, List<Node>> adjList = this.graf.getAdjList();
         Graf.color[] color = new Graf.color[adjList.size()];
@@ -296,15 +294,12 @@ public class FlowNetwork {
 
         while (!queue.isEmpty()) {
             Node u = queue.poll();
-            System.out.print(u.getId()-1 + " - ");
             for (Node n : this.graf.getSuccessors(u)) {
                 //if vertex is not already visited (white) and u-v edge weight >0
                 if (color[index.get(n)] == Graf.color.WHITE && this.graf.getEdge(u.getId(), n.getId()).getWeight()>0) {
                     //return true if t is reach (t = node 999)
                     if(n.getId() == 999) {
-                        choosenPath.add(new Node(999));
-                        System.out.print(999);
-                        System.out.print("\n\n");
+                        chosenPath.add(new Node(999));
                         return true;
                     }
 
@@ -313,22 +308,18 @@ public class FlowNetwork {
                 }
             }
             color[index.get(u)] = Graf.color.BLACK;
-            choosenPath.add(u);
+            chosenPath.add(u);
         }
-        System.out.print("\n\n--");
-
         return false;
     }
-
-
 
 
     /**
      * Computes a depth-first-search of the graph
      * @return a list of nodes representing a depth-first-search of the graph in order
      */
-    public boolean existsAugmentingPathDFS(LinkedHashSet<Node> choosenPath) {
-        choosenPath.clear();
+    public boolean existsAugmentingPathDFS(LinkedHashSet<Node> chosenPath) {
+        chosenPath.clear();
         Map<Node, Integer> index = new HashMap<>();
         TreeMap<Node, List<Node>> adjList = this.graf.getAdjList();
 
@@ -341,32 +332,36 @@ public class FlowNetwork {
             cpt++;
         }
 
-        for (Map.Entry<Node, List<Node>> entry : adjList.entrySet()) {
-            if (color[index.get(entry.getKey())] == Graf.color.WHITE) {
-                dfs_visit(choosenPath, entry.getKey(), color, index, this);
-            }
+        if (color[index.get(new Node(1))] == Graf.color.WHITE) {
+            dfs_visit(chosenPath, new Node(1), color, index, this);
         }
 
-        if(choosenPath.contains(new Node(999))) return true;
+        System.out.println();
+        if(chosenPath.contains(new Node(999))) return true;
+
         return false;
     }
 
     /**
      * Recursively searches (depth-first) from a node
      */
-    private void dfs_visit(LinkedHashSet<Node> choosenPath, Node u, Graf.color[] color, Map<Node, Integer> index, FlowNetwork fn) {
-        if(u.getId() == 999) {
-            return;
-        }
+    private void dfs_visit(LinkedHashSet<Node> chosenPath, Node u, Graf.color[] color, Map<Node, Integer> index, FlowNetwork fn) {
+        chosenPath.add(u);
+        if(u.getId() == 999) System.out.println("999");
+        else System.out.print(u.getId()-1  + " - ");
 
         color[index.get(u)] = Graf.color.GREY;
-        for (Node v : fn.graf.getSuccessors(u)) {
+        List<Node> successor = fn.graf.getSuccessors(u);
+
+        for (Node v : successor) {
+            if(chosenPath.contains(new Node(999))){
+                return;
+            }
             if (color[index.get(v)] == Graf.color.WHITE) {
-                dfs_visit(choosenPath, v, color, index, fn);
+                dfs_visit(chosenPath, v, color, index, fn);
             }
         }
         color[index.get(u)] = Graf.color.BLACK;
-        choosenPath.add(u);
     }
 
 }
