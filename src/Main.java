@@ -10,6 +10,22 @@ public class Main {
         try {
             File f = new File("./Ressources/test.dot");
             FlowNetwork flowNetwork = new FlowNetwork(f);
+            System.out.println(flowNetwork.toDotString());
+            System.out.println(flowNetwork.graf.existsEdge(1, 2));
+            System.out.println(flowNetwork.graf.existsEdge(1, 3));
+            System.out.println(flowNetwork.graf.existsEdge(2, 4));
+            System.out.println(flowNetwork.graf.existsEdge(3, 4));
+            System.out.println(flowNetwork.graf.existsEdge(3, 5));
+            System.out.println(flowNetwork.graf.existsEdge(4, 3));
+            System.out.println(flowNetwork.graf.existsEdge(4, 999));
+            System.out.println(flowNetwork.graf.existsEdge(5, 999));
+
+            FlowNetwork fn2 = flowNetwork.clone();
+            System.out.println(fn2.toDotString());
+
+            System.out.println("Maximm flows : " + flowNetwork.fordFulkerson());
+
+
         } catch (FileNotFoundException e) {
             System.out.println("Erreur : Aucun fichier trouvé");
             //System.out.println(e);

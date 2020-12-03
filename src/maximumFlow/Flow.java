@@ -45,14 +45,14 @@ public class Flow {
         //if (o == this) return true;
         if (o instanceof Flow) {
             Flow toCompare = (Flow) o;
-            return this.from.equals(toCompare.from) && this.to.equals(toCompare.to) && this.flow == toCompare.flow;
+            return this.from.equals(toCompare.from) && this.to.equals(toCompare.to) && this.value == toCompare.value;
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return from + "->" + to + "[label=\"" + flow + "\"]";
+        return from + "->" + to + "[label=\"" + value + "\"]";
     }
 
     @Override

@@ -114,6 +114,39 @@ public class FlowNetwork {
     }
 
     /**
+     * Returns a String representing the graph in the DOT formalism
+     * @return a String representing the graph in the DOT formalism
+     */
+    public String toDotString(int graphNumber) {
+        StringBuilder dot = new StringBuilder("digraph {\n\trankdir=\"LR\";\n");
+        dot.append("label =\"(")
+                .append(graphNumber)
+                .append(") Flow induced from residual graph ")
+                .append(graphNumber-1)
+                .append(". Value: ")
+                .append(this.maxFlow())
+                .append("\";");
+        int biggestId = Node.getBiggestId();
+        for (Map.Entry<Node, List<Node>> entry : graf.getAdjList().entrySet()) {
+            Collections.sort(entry.getValue());
+
+            for (Node to : entry.getValue()) {
+                dot.append("\t").append(( entry.getKey().getId() == 1 ? "s" : entry.getKey().getId() -1 ))
+                        .append(" -> ")
+                        .append(( to.getId() == biggestId ? "t" : to.getId() -1 ))
+                        .append(" [label=\"")
+                        .append(getFlow(entry.getKey(), to).getValue())
+                        .append("/")
+                        .append(graf.getEdge(entry.getKey().getId(), to.getId()).getWeight())
+                        .append("\"];\n");
+            }
+        }
+        dot.append("}");
+
+        return dot.toString();
+    }
+
+    /**
     Input : G = (V,E) the flow network graph, s belonging to V the source state of the
     network, t belonging to V the sink state of the network
     Output : f a maximum flow for G
@@ -129,22 +162,77 @@ public class FlowNetwork {
         FlowNetwork inducedFlow = this.clone();
         initFlow(inducedFlow);
         FlowNetwork residualNetwork = this.clone();
+        int cpt = 1; //use to know the number of iteration
 
-        // List<Node> path = new ArrayList<Node>
-        // while(/**residualNetwork.existsAugmentingPath*/) {
+        LinkedHashSet<Node> path = new LinkedHashSet<>();
+        while(residualNetwork.existsAugmentingPath(path)) {
             // toDotFile(residualNetwork, path)
             // update inducedFlow
+            Node prevN = null;
+            int flowCapacity = Integer.MAX_VALUE;
+
+            for(Node n : path) {
+                System.out.println(prevN + "   -   " + n);
+
+                if(prevN != null) {
+                    System.out.println(residualNetwork.graf.getEdge(prevN.getId(), n.getId()));
+                    int currentWeight = residualNetwork.graf.getEdge(prevN.getId(), n.getId()).getWeight();
+                    System.out.println(currentWeight);
+                    flowCapacity = Integer.min(flowCapacity, currentWeight);
+                }
+                prevN = n;
+            }
+
+            prevN = null;
+            int currentFlowCapacity;
+            for(Node n : path) {
+                if(prevN != null) {
+                    currentFlowCapacity = inducedFlow.getFlow(prevN, n).getValue();
+                    inducedFlow.getFlow(prevN, n).setValue(flowCapacity + currentFlowCapacity);
+                }
+                prevN = n;
+            }
             // toDotFile(inducedFlow)
+            inducedFlow.toDotString(cpt);
+
             // residualNetwork = residualNetwork(inducedFlow);
-        // }
+            prevN = null;
+            int currentWeight;
+            Edge e;
+            for(Node n : path) {
+                if(prevN != null) {
+                    e = residualNetwork.graf.getEdge(n.getId(), prevN.getId());
+                    currentWeight = e.getWeight();
+                    e.setWeight(currentWeight - flowCapacity);
+                    e = residualNetwork.graf.getEdge(prevN.getId(), n.getId());
+                    currentWeight = e.getWeight();
+                    e.setWeight(currentWeight + flowCapacity);
+                }
+                prevN = n;
+            }
+
+            cpt++;
+        }
+
+
+
+        return inducedFlow.maxFlow();
+    }
+
+    /**
+     * Get the maximum flow of a flow network
+     * @return The maximum flow value
+     */
+    private int maxFlow() {
         int maxFlow = 0;
-        for (Node s : inducedFlow.graf.getSuccessors(1)) {
+        for (Node s : this.graf.getSuccessors(1)) {
             maxFlow += getFlow(graf.getNode(1), s).getValue();
         }
+
         return maxFlow;
     }
 
-    public List<Node> findAugmentingPath() {
+    /*public List<Node> findAugmentingPath() {
         int currentNode = 999;
         int maximumFlow = Integer.MAX_VALUE;
 
@@ -155,7 +243,7 @@ public class FlowNetwork {
             maximumFlow = Integer.min(maximumFlow, e.getWeight());
         }
 
-    }
+    }*/
 
     public void increaseFlow() {
 
@@ -173,19 +261,19 @@ public class FlowNetwork {
     public FlowNetwork clone() {
         FlowNetwork fn = new FlowNetwork();
         for (Edge n : this.graf.getEdgeList()) fn.graf.addEdge(n);
+        fn.flows.addAll(this.flows);
         return fn;
     }
 
 
-    public enum color{WHITE, GREY, BLACK}
-
     /**
      * Computes a breadth-first-search of the graph
-     * @return a list of nodes representing a breadth-first-search of the graph in order
+     * @return true if a path is fine, false instead
      */
-    public List<Node> getBFS() {
-        List<Node> bfs = new ArrayList<>();
+    public boolean existsAugmentingPath(LinkedHashSet<Node> choosenPath){
+        choosenPath.clear();
         Map<Node, Integer> index = new HashMap<>();
+        TreeMap<Node, List<Node>> adjList = this.graf.getAdjList();
         Graf.color[] color = new Graf.color[adjList.size()];
 
         int cpt = 0;
@@ -202,17 +290,28 @@ public class FlowNetwork {
 
         while (!queue.isEmpty()) {
             Node u = queue.poll();
-            for (Node n : getSuccessors(u)) {
-                if (color[index.get(n)] == Graf.color.WHITE) {
+            System.out.print(u.getId() + " - ");
+            for (Node n : this.graf.getSuccessors(u)) {
+                //if vertex is not already visited (white) and u-v edge weight >0
+                if (color[index.get(n)] == Graf.color.WHITE && this.graf.getEdge(u.getId(), n.getId()).getWeight()>0) {
+                    //return true if t is reach (t = node 999)
+                    if(n.getId() == 999) {
+                        choosenPath.add(new Node(999));
+                        System.out.print(999);
+                        System.out.print("\n\n");
+                        return true;
+                    }
+
                     color[index.get(n)] = Graf.color.GREY;
                     queue.add(n);
                 }
             }
             color[index.get(u)] = Graf.color.BLACK;
-            bfs.add(u);
+            choosenPath.add(u);
         }
+        System.out.print("\n\n--");
 
-        return bfs;
+        return false;
     }
 
 }
