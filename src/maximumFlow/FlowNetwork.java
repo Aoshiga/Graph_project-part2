@@ -89,6 +89,8 @@ public class FlowNetwork {
         return null;
     }
 
+    public boolean existsFlow(Flow f) {return flows.contains(f);}
+
     /**
      * Returns a String representing the graph in the DOT formalism
      * @return a String representing the graph in the DOT formalism
@@ -135,7 +137,7 @@ public class FlowNetwork {
             // toDotFile(residualNetwork, path)
             // update inducedFlow
             // toDotFile(inducedFlow)
-            // residualNetwork = residualNetwork(inducedFlow);
+            // residualNetwork = makeResidual(inducedFlow);
         // }
         int maxFlow = 0;
         for (Node s : inducedFlow.graf.getSuccessors(1)) {
@@ -144,18 +146,38 @@ public class FlowNetwork {
         return maxFlow;
     }
 
-    public List<Node> findAugmentingPath() {
-        int currentNode = 999;
-        int maximumFlow = Integer.MAX_VALUE;
-
-        List<Edge> inE = this.graf.getInEdges(currentNode);
-        List<Integer> visited = new ArrayList<>();
-        for (Edge e : inE)
-        {
-            maximumFlow = Integer.min(maximumFlow, e.getWeight());
+    public static FlowNetwork makeResidual(FlowNetwork fn) {
+        FlowNetwork rn = new FlowNetwork();
+        for (Node n : fn.graf.getAllNodes()) rn.graf.addNode(n);
+        // for all nodes in fn
+        for (Node to : rn.graf.getAllNodes()) {
+            // for each out edge
+            for (Edge outEdge : fn.graf.getOutEdges(to)) {
+                int flow;
+                if (fn.existsFlow(fn.getFlow(to, outEdge.getFrom()))) flow = fn.getFlow(to, outEdge.getFrom()).getValue();
+                else flow = 0;
+                int weight = outEdge.getWeight() - flow;
+                // add an edge with weight equal to the weight of the out edge minus current flow on that edge in fn
+                rn.graf.addEdge(new Edge(to.getId()+1, outEdge.getFrom().getId()+1, weight));
+                // add a reverse edge with weight equal to the current flow on the outer edge in fn, if that flow is positive
+                if (flow > 0) rn.graf.addEdge(new Edge(outEdge.getFrom().getId()+1, to.getId()+1, flow));
+            }
         }
-
+        return rn;
     }
+
+//    public List<Node> findAugmentingPath() {
+//        int currentNode = 999;
+//        int maximumFlow = Integer.MAX_VALUE;
+//
+//        List<Edge> inE = this.graf.getInEdges(currentNode);
+//        List<Integer> visited = new ArrayList<>();
+//        for (Edge e : inE)
+//        {
+//            maximumFlow = Integer.min(maximumFlow, e.getWeight());
+//        }
+//
+//    }
 
     public void increaseFlow() {
 
@@ -183,36 +205,36 @@ public class FlowNetwork {
      * Computes a breadth-first-search of the graph
      * @return a list of nodes representing a breadth-first-search of the graph in order
      */
-    public List<Node> getBFS() {
-        List<Node> bfs = new ArrayList<>();
-        Map<Node, Integer> index = new HashMap<>();
-        Graf.color[] color = new Graf.color[adjList.size()];
-
-        int cpt = 0;
-        for (Map.Entry<Node, List<Node>> entry : adjList.entrySet()) {
-            index.put(entry.getKey(), cpt);
-            color[cpt] = Graf.color.WHITE;
-            cpt++;
-        }
-
-        color[0] = Graf.color.GREY;
-        //PriorityQueue doesn't conserve the order : use Linked instead
-        LinkedBlockingQueue<Node> queue = new LinkedBlockingQueue<>();
-        queue.add(new Node(1));
-
-        while (!queue.isEmpty()) {
-            Node u = queue.poll();
-            for (Node n : getSuccessors(u)) {
-                if (color[index.get(n)] == Graf.color.WHITE) {
-                    color[index.get(n)] = Graf.color.GREY;
-                    queue.add(n);
-                }
-            }
-            color[index.get(u)] = Graf.color.BLACK;
-            bfs.add(u);
-        }
-
-        return bfs;
-    }
+//    public List<Node> getBFS() {
+//        List<Node> bfs = new ArrayList<>();
+//        Map<Node, Integer> index = new HashMap<>();
+//        Graf.color[] color = new Graf.color[adjList.size()];
+//
+//        int cpt = 0;
+//        for (Map.Entry<Node, List<Node>> entry : adjList.entrySet()) {
+//            index.put(entry.getKey(), cpt);
+//            color[cpt] = Graf.color.WHITE;
+//            cpt++;
+//        }
+//
+//        color[0] = Graf.color.GREY;
+//        //PriorityQueue doesn't conserve the order : use Linked instead
+//        LinkedBlockingQueue<Node> queue = new LinkedBlockingQueue<>();
+//        queue.add(new Node(1));
+//
+//        while (!queue.isEmpty()) {
+//            Node u = queue.poll();
+//            for (Node n : getSuccessors(u)) {
+//                if (color[index.get(n)] == Graf.color.WHITE) {
+//                    color[index.get(n)] = Graf.color.GREY;
+//                    queue.add(n);
+//                }
+//            }
+//            color[index.get(u)] = Graf.color.BLACK;
+//            bfs.add(u);
+//        }
+//
+//        return bfs;
+//    }
 
 }

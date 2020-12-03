@@ -1,0 +1,13 @@
+digraph flowNetwork {
+    rankdir =" LR ";
+    s -> 1 [label=16];
+    s -> 2 [label=13];
+    1 -> 2 [label=10];
+    1 -> 3 [label=12];
+    2 -> 1 [label=4];
+    2 -> 4 [label=14];
+    3 -> 2 [label=9];
+    3 -> t [label=20];
+    4 -> 3 [label=7];
+    4 -> t [label=4];
+}
