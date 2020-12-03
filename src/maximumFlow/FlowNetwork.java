@@ -121,15 +121,15 @@ public class FlowNetwork {
      */
     public String toDotString(int graphNumber) {
         StringBuilder dot = new StringBuilder("digraph flow")
-            .append(graphNumber)
-            .append(" {\n\trankdir=\"LR\";\n");
-        dot.append("label =\"(")
+                .append(graphNumber)
+                .append(" {\n\trankdir=\"LR\";\n")
+                .append("\tlabel = \"(")
                 .append(graphNumber)
                 .append(") Flow induced from residual graph ")
                 .append(graphNumber-1)
                 .append(". Value: ")
                 .append(this.maxFlow())
-                .append("\";");
+                .append("\";\n");
         int biggestId = Node.getBiggestId();
         for (Map.Entry<Node, List<Node>> entry : graf.getAdjList().entrySet()) {
             Collections.sort(entry.getValue());
@@ -175,6 +175,7 @@ public class FlowNetwork {
             Node prevN = null;
             int flowCapacity = Integer.MAX_VALUE;
 
+            //Search the maximum flow capacity on the current finding path
             for(Node n : path) {
                 if(prevN != null) {
                     int currentWeight = residualNetwork.graf.getEdge(prevN.getId(), n.getId()).getWeight();
@@ -183,6 +184,7 @@ public class FlowNetwork {
                 prevN = n;
             }
 
+            //Complete the induced flow with the maximum flow capacity we find
             prevN = null;
             int currentFlowCapacity;
             for(Node n : path) {
@@ -192,24 +194,36 @@ public class FlowNetwork {
                 }
                 prevN = n;
             }
-            // toDotFile(inducedFlow)
             System.out.println(inducedFlow.toDotString(cpt));
+            System.out.println(existsFlow(inducedFlow.getFlow(new Node(1), new Node(2))));
 
             residualNetwork = makeResidual(inducedFlow);
+
             /*prevN = null;
             int currentWeight;
             Edge e;
             for(Node n : path) {
                 if(prevN != null) {
+
+                    if(residualNetwork.graf.getEdge(n.getId(), prevN.getId()) == null) {
+                        residualNetwork.graf.addEdge(n.getId(), prevN.getId(), 0);
+                    }
                     e = residualNetwork.graf.getEdge(n.getId(), prevN.getId());
                     currentWeight = e.getWeight();
                     e.setWeight(currentWeight - flowCapacity);
+
+                    if(residualNetwork.graf.getEdge(prevN.getId(), n.getId()) == null) {
+                        residualNetwork.graf.addEdge(n.getId(), prevN.getId(), 0);
+                    }
                     e = residualNetwork.graf.getEdge(prevN.getId(), n.getId());
                     currentWeight = e.getWeight();
                     e.setWeight(currentWeight + flowCapacity);
                 }
                 prevN = n;
             }*/
+
+            System.out.println(residualNetwork.toDotString());
+
 
             cpt++;
         }
@@ -236,9 +250,13 @@ public class FlowNetwork {
         for (Node to : rn.graf.getAllNodes()) {
             // for each out edge
             for (Edge outEdge : fn.graf.getOutEdges(to)) {
+                System.out.println(outEdge);
                 int flow;
+                System.out.println(fn.getFlow(to, outEdge.getFrom()));
                 if (fn.existsFlow(fn.getFlow(to, outEdge.getFrom()))) flow = fn.getFlow(to, outEdge.getFrom()).getValue();
                 else flow = 0;
+                System.out.println(flow);
+
                 int weight = outEdge.getWeight() - flow;
                 // add an edge with weight equal to the weight of the out edge minus current flow on that edge in fn
                 rn.graf.addEdge(new Edge(to.getId()+1, outEdge.getFrom().getId()+1, weight));
@@ -353,6 +371,7 @@ public class FlowNetwork {
         color[index.get(u)] = Graf.color.GREY;
         List<Node> successor = fn.graf.getSuccessors(u);
 
+        //browse successor and break the dfs search if we find t
         for (Node v : successor) {
             if(chosenPath.contains(new Node(999))){
                 return;
