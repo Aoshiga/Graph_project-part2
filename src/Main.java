@@ -1,3 +1,5 @@
+import m1graf2020.Node;
+import maximumFlow.Flow;
 import maximumFlow.FlowNetwork;
 
 import java.io.File;
@@ -8,20 +10,17 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         try {
-            File f = new File("./Ressources/test.dot");
+            File f = new File("./resources/input/lectureFlowNetwork.dot");
             FlowNetwork flowNetwork = new FlowNetwork(f);
-            /*flowNetwork.addFlow(new Flow(new Node(0), new Node(1), 11));
-            flowNetwork.addFlow(new Flow(new Node(1), new Node(3), 4));
-            flowNetwork.addFlow(new Flow(new Node(1), new Node(2), 4));
-            flowNetwork.addFlow(new Flow(new Node(2), new Node(4), 11));
-            flowNetwork.addFlow(new Flow(new Node(3), new Node(2), 4));
-            flowNetwork.addFlow(new Flow(new Node(3), new Node(998), 7));
-            flowNetwork.addFlow(new Flow(new Node(4), new Node(3), 7));
-            flowNetwork.addFlow(new Flow(new Node(4), new Node(998), 4));
-            System.out.println(FlowNetwork.makeResidual(flowNetwork).toDotString());*/
-
-            System.out.println(flowNetwork.fordFulkerson());
-
+//            flowNetwork.addFlow(new Flow(new Node(0), new Node(1), 11));
+//            flowNetwork.addFlow(new Flow(new Node(1), new Node(3), 4));
+//            flowNetwork.addFlow(new Flow(new Node(1), new Node(2), 7));
+//            flowNetwork.addFlow(new Flow(new Node(2), new Node(4), 11));
+//            flowNetwork.addFlow(new Flow(new Node(3), new Node(2), 4));
+//            flowNetwork.addFlow(new Flow(new Node(3), new Node(998), 7));
+//            flowNetwork.addFlow(new Flow(new Node(4), new Node(3), 7));
+//            flowNetwork.addFlow(new Flow(new Node(4), new Node(998), 4));
+            flowNetwork.fordFulkerson();
         } catch (FileNotFoundException e) {
             System.out.println("Erreur : Aucun fichier trouvé");
             //System.out.println(e);

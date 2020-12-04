@@ -6,6 +6,7 @@ import m1graf2020.Node;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -154,14 +155,19 @@ public class FlowNetwork {
             Collections.sort(entry.getValue());
 
             for (Node to : entry.getValue()) {
-                dot.append("\t").append(( entry.getKey().getId() == 1 ? "s" : entry.getKey().getId() -1 ))
-                        .append(" -> ")
-                        .append(( to.getId() == biggestId ? "t" : to.getId() -1 ))
-                        .append(" [label=\"")
-                        .append(getFlow(entry.getKey(), to).getValue())
-                        .append("/")
-                        .append(graf.getEdge(entry.getKey().getId(), to.getId()).getWeight())
-                        .append("\"];\n");
+                dot.append("\t");
+                if (entry.getKey().getId() == 1) dot.append("s");
+                else if (entry.getKey().getId() == biggestId) dot.append("t");
+                else dot.append(entry.getKey().getId() -1 );
+                dot.append(" -> ");
+                if (to.getId() == 1) dot.append("s");
+                else if (to.getId() == biggestId) dot.append("t");
+                else dot.append(to.getId() -1 );
+                dot.append(" [label=\"")
+                    .append(getFlow(entry.getKey(), to).getValue())
+                    .append("/")
+                    .append(graf.getEdge(entry.getKey().getId(), to.getId()).getWeight())
+                    .append("\"];\n");
             }
         }
         dot.append("}");
@@ -170,9 +176,92 @@ public class FlowNetwork {
     }
 
     /**
-    Input : G = (V,E) the flow network graph, s belonging to V the source state of the
+     * Returns a String representing the graph in the DOT formalism
+     * @return a String representing the graph in the DOT formalism
+     */
+    public String toDotString(int graphNumber, LinkedHashSet<Node> path, int flowCapacity) {
+        StringBuilder pathString = new StringBuilder();
+        int biggestId = Node.getBiggestId();
+        pathString.append("[");
+        for (Node n : path) {
+            if (n.getId() == 1) pathString.append("s");
+            else if (n.getId() == biggestId) {
+                pathString.append("t");
+                break;
+            }
+            else pathString.append(n.getId() -1);
+            pathString.append(", ");
+        }
+        pathString.append("]");
+        StringBuilder dot = new StringBuilder("digraph residualGraph")
+                .append(graphNumber)
+                .append(" {\n\trankdir=\"LR\";\n")
+                .append("\tlabel = \"(")
+                .append(graphNumber)
+                .append(") residual graph.\n")
+                .append("\tAugmenting path: ")
+                .append(pathString)
+                .append("\n\tResidual Capacity: ")
+                .append(flowCapacity)
+                .append("\";\n");
+        for (Map.Entry<Node, List<Node>> entry : graf.getAdjList().entrySet()) {
+            Collections.sort(entry.getValue());
+
+            for (Node to : entry.getValue()) {
+                dot.append("\t");
+                if (entry.getKey().getId() == 1) dot.append("s");
+                else if (entry.getKey().getId() == biggestId) dot.append("t");
+                else dot.append(entry.getKey().getId() -1 );
+                dot.append(" -> ");
+                if (to.getId() == 1) dot.append("s");
+                else if (to.getId() == biggestId) dot.append("t");
+                else dot.append(to.getId() -1 );
+                dot.append(" [label=\"")
+                    .append(graf.getEdge(entry.getKey().getId(), to.getId()).getWeight())
+                    .append("\"];\n");
+            }
+        }
+        dot.append("}");
+
+        return dot.toString();
+    }
+
+    /**
+     * Exports the graph in a .dot file in the DOT formalism
+     */
+    public void toDotFile(int cpt){
+        /* if filename is empty (""), give a default filename */
+        try {
+            String dot = this.toDotString(cpt);
+            FileWriter fw = new FileWriter("resources/output/flow" + cpt +".dot");
+            fw.write(dot);
+            fw.close();
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Exports the graph in a .dot file in the DOT formalism
+     */
+    public void toDotFile(int cpt, LinkedHashSet path, int flowCapacity){
+        /* if filename is empty (""), give a default filename */
+        try {
+            String dot = this.toDotString(cpt, path, flowCapacity);
+            FileWriter fw = new FileWriter("resources/output/residGraph" + cpt +".dot");
+            fw.write(dot);
+            fw.close();
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+    input : G = (V,E) the flow network graph, s belonging to V the source state of the
     network, t belonging to V the sink state of the network
-    Output : f a maximum flow for G
+    output : f a maximum flow for G
     begin
     Initialize flow f to 0;
     while there exists an augmenting path p do
@@ -197,11 +286,14 @@ public class FlowNetwork {
             increaseFlow(inducedFlow, path, flowCapacity);
             //Complete the induced flow with the maximum flow capacity we find
 
-            System.out.println(inducedFlow.toDotString(cpt));
+//            System.out.println(inducedFlow.toDotString(cpt));
+            inducedFlow.toDotFile(cpt);
 
+            residualNetwork.toDotFile(cpt, path, flowCapacity);
             residualNetwork = makeResidual(inducedFlow);
 
-            System.out.println(residualNetwork.toDotString());
+
+//            System.out.println(residualNetwork.toDotString(cpt, path, flowCapacity));
 
             cpt++;
         }
@@ -271,13 +363,20 @@ public class FlowNetwork {
                 if (fn.existsFlow(fn.getFlow(from, outEdge.getTo()))) flow = fn.getFlow(from, outEdge.getTo()).getValue();
                 else flow = 0;
                 int weight = outEdge.getWeight() - flow;
-                if (from.getId() == 3 && outEdge.getTo().getId() == 2) {
-                    System.out.println("Weight of edge from " + outEdge.getFrom() + " to " + outEdge.getTo() + " : " + outEdge.getWeight());
-                    System.out.println("Flow from " + from + " to " + outEdge.getTo() + " : " + flow);
-                    System.out.println("Adding edge : " + from.getId() + " -> " + outEdge.getTo().getId() + ", of value " + weight);
+                int reverse_flow = 0;
+                if (fn.existsFlow(fn.getFlow(outEdge.getTo(), from))) {
+                    reverse_flow += fn.getFlow(outEdge.getTo(), from).getValue();
+                    weight += reverse_flow;
                 }
                 // add an edge with weight equal to the weight of the out edge minus current flow on that edge in fn
-                if (weight > 0) rn.graf.addEdge(new Edge(from.getId(), outEdge.getTo().getId(), weight));
+                if (weight > 0) {
+                    if (rn.graf.existsEdge(from.getId(), outEdge.getTo().getId())) {
+                        Edge edge = rn.graf.getEdge(from.getId(), outEdge.getTo().getId());
+                        edge.setWeight(weight);
+                    } else {
+                        rn.graf.addEdge(new Edge(from.getId(), outEdge.getTo().getId(), weight));
+                    }
+                }
                 // add a reverse edge with weight equal to the current flow on the outer edge in fn, if that flow is positive
                 if (flow > 0) {
                     rn.graf.addEdge(new Edge(outEdge.getTo().getId(), from.getId(), flow));
@@ -391,6 +490,10 @@ public class FlowNetwork {
             }
         }
         color[index.get(u)] = Graf.color.BLACK;
+        if(!chosenPath.contains(new Node(999))){
+            chosenPath.remove(u);
+            System.out.print("(" + (u.getId()-1) + ")");
+        }
     }
 
     @Override
