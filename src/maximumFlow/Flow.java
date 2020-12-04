@@ -24,9 +24,9 @@ public class Flow {
         this.to = to;
     }
 
-    Flow(Node from, Node to, int value) {
-        this.from = from;
-        this.to = to;
+    public Flow(Node from, Node to, int value) {
+        this.from = new Node(from.getId()+1);
+        this.to = new Node(to.getId()+1);
         this.value = value;
     }
 

@@ -17,7 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 // - toDotString doit prendre en compte deux cas : graphe résiduel et flowNetwork
 public class FlowNetwork {
     public Graf graf;
-    List<Flow> flows;
+    public List<Flow> flows;
     /**
      * Builds a flow network from a Dot file
      * @param file file to be read, must be .dot file
@@ -59,8 +59,8 @@ public class FlowNetwork {
                 weight = Integer.parseInt(label);
 
                 graf.addEdge(from_id, to_id, weight);
-                flows.add(new Flow(from_id, to_id));
-                flows.add(new Flow(to_id, from_id));
+//                flows.add(new Flow(from_id, to_id));
+//                flows.add(new Flow(to_id, from_id));
 
             }
         }
@@ -69,6 +69,15 @@ public class FlowNetwork {
     FlowNetwork() {
         this.graf = new Graf();
         this.flows = new ArrayList<>();
+    }
+
+    public Flow getFlow(int from_id, int to_id) {
+        for (Flow f : flows) {
+            if (f.getTo().getId() == to_id && f.getFrom().getId() == from_id) {
+                return f;
+            }
+        }
+        return null;
     }
 
     public Flow getFlow(Node from, Node to) {
@@ -89,7 +98,11 @@ public class FlowNetwork {
         return null;
     }
 
-    public boolean existsFlow(Flow f) {return flows.contains(f);}
+    public void addFlow(Flow f) { flows.add(f);}
+
+    public boolean existsFlow(Flow f) {
+        return flows.contains(f);
+    }
 
     /**
      * Returns a String representing the graph in the DOT formalism
@@ -102,9 +115,15 @@ public class FlowNetwork {
             Collections.sort(entry.getValue());
 
             for (Node to : entry.getValue()) {
-                dot.append("\t").append(( entry.getKey().getId() == 1 ? "s" : entry.getKey().getId() -1 ));
+                dot.append("\t");
+                int from = entry.getKey().getId();
+                if (from == 1) dot.append("s");
+                else if (from == biggestId) dot.append("t");
+                else dot.append(entry.getKey().getId() -1 );
                 dot.append(" -> ");
-                dot.append(( to.getId() == biggestId ? "t" : to.getId() -1 ));
+                if (to.getId() == 1) dot.append("s");
+                else if (to.getId() == biggestId) dot.append("t");
+                else dot.append(to.getId() -1 );
                 dot.append(" [label=\"");
                 dot.append(graf.getEdge(entry.getKey().getId(), to.getId()).getWeight());
                 dot.append("\"];\n");
@@ -235,17 +254,24 @@ public class FlowNetwork {
         FlowNetwork rn = new FlowNetwork();
         for (Node n : fn.graf.getAllNodes()) rn.graf.addNode(n);
         // for all nodes in fn
-        for (Node to : rn.graf.getAllNodes()) {
+        for (Node from : rn.graf.getAllNodes()) {
             // for each out edge
-            for (Edge outEdge : fn.graf.getOutEdges(to)) {
+            for (Edge outEdge : fn.graf.getOutEdges(from)) {
                 int flow;
-                if (fn.existsFlow(fn.getFlow(to, outEdge.getFrom()))) flow = fn.getFlow(to, outEdge.getFrom()).getValue();
+                if (fn.existsFlow(fn.getFlow(from, outEdge.getTo()))) flow = fn.getFlow(from, outEdge.getTo()).getValue();
                 else flow = 0;
                 int weight = outEdge.getWeight() - flow;
+                if (from.getId() == 3 && outEdge.getTo().getId() == 2) {
+                    System.out.println("Weight of edge from " + outEdge.getFrom() + " to " + outEdge.getTo() + " : " + outEdge.getWeight());
+                    System.out.println("Flow from " + from + " to " + outEdge.getTo() + " : " + flow);
+                    System.out.println("Adding edge : " + from.getId() + " -> " + outEdge.getTo().getId() + ", of value " + weight);
+                }
                 // add an edge with weight equal to the weight of the out edge minus current flow on that edge in fn
-                rn.graf.addEdge(new Edge(to.getId()+1, outEdge.getFrom().getId()+1, weight));
+                if (weight > 0) rn.graf.addEdge(new Edge(from.getId(), outEdge.getTo().getId(), weight));
                 // add a reverse edge with weight equal to the current flow on the outer edge in fn, if that flow is positive
-                if (flow > 0) rn.graf.addEdge(new Edge(outEdge.getFrom().getId()+1, to.getId()+1, flow));
+                if (flow > 0) {
+                    rn.graf.addEdge(new Edge(outEdge.getTo().getId(), from.getId(), flow));
+                }
             }
         }
         return rn;
