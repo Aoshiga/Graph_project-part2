@@ -170,65 +170,64 @@ public class FlowNetwork {
 
         LinkedHashSet<Node> path = new LinkedHashSet<>();
         while(residualNetwork.existsAugmentingPathDFS(path)) {
+            if(cpt == 10) break;
             // toDotFile(residualNetwork, path)
-            // update inducedFlow
-            Node prevN = null;
-            int flowCapacity = Integer.MAX_VALUE;
-
-            //Search the maximum flow capacity on the current finding path
-            for(Node n : path) {
-                if(prevN != null) {
-                    int currentWeight = residualNetwork.graf.getEdge(prevN.getId(), n.getId()).getWeight();
-                    flowCapacity = Integer.min(flowCapacity, currentWeight);
-                }
-                prevN = n;
-            }
-
+            // search flow capacity
+            int flowCapacity = searchFlowCapacity(path, residualNetwork);
+            inducedFlow = increaseFlow(path, inducedFlow, flowCapacity);
             //Complete the induced flow with the maximum flow capacity we find
-            prevN = null;
-            int currentFlowCapacity;
-            for(Node n : path) {
-                if(prevN != null) {
-                    currentFlowCapacity = inducedFlow.getFlow(prevN, n).getValue();
-                    inducedFlow.getFlow(prevN, n).setValue(flowCapacity + currentFlowCapacity);
-                }
-                prevN = n;
-            }
+
             System.out.println(inducedFlow.toDotString(cpt));
             System.out.println(existsFlow(inducedFlow.getFlow(new Node(1), new Node(2))));
 
             residualNetwork = makeResidual(inducedFlow);
 
-            /*prevN = null;
-            int currentWeight;
-            Edge e;
-            for(Node n : path) {
-                if(prevN != null) {
-
-                    if(residualNetwork.graf.getEdge(n.getId(), prevN.getId()) == null) {
-                        residualNetwork.graf.addEdge(n.getId(), prevN.getId(), 0);
-                    }
-                    e = residualNetwork.graf.getEdge(n.getId(), prevN.getId());
-                    currentWeight = e.getWeight();
-                    e.setWeight(currentWeight - flowCapacity);
-
-                    if(residualNetwork.graf.getEdge(prevN.getId(), n.getId()) == null) {
-                        residualNetwork.graf.addEdge(n.getId(), prevN.getId(), 0);
-                    }
-                    e = residualNetwork.graf.getEdge(prevN.getId(), n.getId());
-                    currentWeight = e.getWeight();
-                    e.setWeight(currentWeight + flowCapacity);
-                }
-                prevN = n;
-            }*/
-
             System.out.println(residualNetwork.toDotString());
-
 
             cpt++;
         }
 
         return inducedFlow.maxFlow();
+    }
+
+    /**
+     * Search the maximum flow capacity in a given path
+     * @param path The path find from s to t in the residualNetwork
+     * @param residualNetwork The residual network where the path was find
+     * @return The flow capacity
+     */
+    private int searchFlowCapacity(LinkedHashSet<Node> path, FlowNetwork residualNetwork){
+        Node prevN = null;
+        int flowCapacity = Integer.MAX_VALUE;
+
+        //Search the maximum flow capacity on the current finding path
+        for(Node n : path) {
+            if(prevN != null) {
+                int currentWeight = residualNetwork.graf.getEdge(prevN.getId(), n.getId()).getWeight();
+                flowCapacity = Integer.min(flowCapacity, currentWeight);
+            }
+            prevN = n;
+        }
+
+        return flowCapacity;
+    }
+
+    /**
+     *
+     */
+    public FlowNetwork increaseFlow(LinkedHashSet<Node> path, FlowNetwork inducedFlow, int flowCapacity) {
+        Node prevN = null;
+        int currentFlowCapacity;
+
+        for(Node n : path) {
+            if(prevN != null) {
+                currentFlowCapacity = inducedFlow.getFlow(prevN, n).getValue();
+                inducedFlow.getFlow(prevN, n).setValue(flowCapacity + currentFlowCapacity);
+            }
+            prevN = n;
+        }
+
+        return inducedFlow;
     }
 
     /**
@@ -244,31 +243,30 @@ public class FlowNetwork {
     }
 
     public static FlowNetwork makeResidual(FlowNetwork fn) {
+        System.out.println(fn.existsFlow(fn.getFlow(new Node(1), new Node(2))));
+        System.out.println(fn.getFlow(new Node(1), new Node(2)).getValue());
+
         FlowNetwork rn = new FlowNetwork();
         for (Node n : fn.graf.getAllNodes()) rn.graf.addNode(n);
         // for all nodes in fn
         for (Node to : rn.graf.getAllNodes()) {
             // for each out edge
             for (Edge outEdge : fn.graf.getOutEdges(to)) {
-                System.out.println(outEdge);
+                System.out.println(outEdge.getFrom() + " - " + outEdge.getTo());
                 int flow;
-                System.out.println(fn.getFlow(to, outEdge.getFrom()));
-                if (fn.existsFlow(fn.getFlow(to, outEdge.getFrom()))) flow = fn.getFlow(to, outEdge.getFrom()).getValue();
+                System.out.println(fn.getFlow(outEdge.getFrom() , outEdge.getTo()));
+                if (fn.existsFlow(fn.getFlow(outEdge.getFrom() , outEdge.getTo()))) flow = fn.getFlow(outEdge.getFrom() , outEdge.getTo()).getValue();
                 else flow = 0;
                 System.out.println(flow);
 
                 int weight = outEdge.getWeight() - flow;
                 // add an edge with weight equal to the weight of the out edge minus current flow on that edge in fn
-                rn.graf.addEdge(new Edge(to.getId()+1, outEdge.getFrom().getId()+1, weight));
+                rn.graf.addEdge(new Edge(outEdge.getFrom().getId(), outEdge.getTo().getId(), weight));
                 // add a reverse edge with weight equal to the current flow on the outer edge in fn, if that flow is positive
-                if (flow > 0) rn.graf.addEdge(new Edge(outEdge.getFrom().getId()+1, to.getId()+1, flow));
+                if (flow > 0) rn.graf.addEdge(new Edge(outEdge.getTo().getId(), outEdge.getFrom().getId(), flow));
             }
         }
         return rn;
-    }
-
-    public void increaseFlow() {
-
     }
 
     /**
@@ -277,14 +275,6 @@ public class FlowNetwork {
      */
     private void initFlow(FlowNetwork fn) {
         for (Flow f : fn.flows) f.setValue(0);
-    }
-
-    @Override
-    public FlowNetwork clone() {
-        FlowNetwork fn = new FlowNetwork();
-        for (Edge n : this.graf.getEdgeList()) fn.graf.addEdge(n);
-        fn.flows.addAll(this.flows);
-        return fn;
     }
 
 
@@ -383,4 +373,11 @@ public class FlowNetwork {
         color[index.get(u)] = Graf.color.BLACK;
     }
 
+    @Override
+    public FlowNetwork clone() {
+        FlowNetwork fn = new FlowNetwork();
+        for (Edge n : this.graf.getEdgeList()) fn.graf.addEdge(n);
+        fn.flows.addAll(this.flows);
+        return fn;
+    }
 }
