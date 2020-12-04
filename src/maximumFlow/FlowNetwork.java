@@ -184,6 +184,7 @@ public class FlowNetwork {
     public int fordFulkerson() {
         FlowNetwork inducedFlow = this.clone();
         initFlow(inducedFlow);
+
         FlowNetwork residualNetwork = this.clone();
         int cpt = 1; //use to know the number of iteration
 
@@ -193,11 +194,10 @@ public class FlowNetwork {
             // toDotFile(residualNetwork, path)
             // search flow capacity
             int flowCapacity = searchFlowCapacity(path, residualNetwork);
-            inducedFlow = increaseFlow(path, inducedFlow, flowCapacity);
+            increaseFlow(inducedFlow, path, flowCapacity);
             //Complete the induced flow with the maximum flow capacity we find
 
             System.out.println(inducedFlow.toDotString(cpt));
-            System.out.println(existsFlow(inducedFlow.getFlow(new Node(1), new Node(2))));
 
             residualNetwork = makeResidual(inducedFlow);
 
@@ -234,19 +234,18 @@ public class FlowNetwork {
     /**
      *
      */
-    public FlowNetwork increaseFlow(LinkedHashSet<Node> path, FlowNetwork inducedFlow, int flowCapacity) {
+    public void increaseFlow(FlowNetwork fn, LinkedHashSet<Node> path, int flowCapacity) {
         Node prevN = null;
         int currentFlowCapacity;
 
         for(Node n : path) {
             if(prevN != null) {
-                currentFlowCapacity = inducedFlow.getFlow(prevN, n).getValue();
-                inducedFlow.getFlow(prevN, n).setValue(flowCapacity + currentFlowCapacity);
+                if(!fn.existsFlow(fn.getFlow(prevN, n))) this.addFlow(new Flow(prevN, n, 0));
+                currentFlowCapacity = fn.getFlow(prevN, n).getValue();
+                fn.getFlow(prevN, n).setValue(flowCapacity + currentFlowCapacity);
             }
             prevN = n;
         }
-
-        return inducedFlow;
     }
 
     /**
@@ -290,10 +289,13 @@ public class FlowNetwork {
 
     /**
      * Initialise all flow in FlowNetwork to 0
-     * @param fn The flowNetwork who need to be initialise
+     * @param inducedFlow
      */
-    private void initFlow(FlowNetwork fn) {
-        for (Flow f : fn.flows) f.setValue(0);
+    private void initFlow(FlowNetwork inducedFlow) {
+        for (Edge e : inducedFlow.graf.getEdgeList()) {
+            inducedFlow.flows.add(new Flow(e.getFrom().getId(), e.getTo().getId(), 0));
+            inducedFlow.flows.add(new Flow(e.getTo().getId(), e.getFrom().getId(), 0));
+        }
     }
 
 
