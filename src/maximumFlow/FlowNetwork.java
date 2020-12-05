@@ -285,15 +285,6 @@ public class FlowNetwork {
         }
     }
 
-    public static void emptyOutput() {
-        File output = new File("./resources/output");
-        File[] files = output.listFiles();
-        assert files != null;
-        for(File f: files) {
-            f.delete();
-        }
-    }
-
     /**
     input : G = (V,E) the flow network graph, s belonging to V the source state of the
     network, t belonging to V the sink state of the network
@@ -318,7 +309,7 @@ public class FlowNetwork {
 
         LinkedHashSet<Node> path = new LinkedHashSet<>();
         while(residualNetwork.existsAugmentingPathDFS(path)) {
-            if(cpt >= 10) {
+            if(cpt >= 20) {
                 throw new Exception("To much file created: stop programm Execution");
             }
             // search flow capacity
@@ -488,7 +479,7 @@ public class FlowNetwork {
 
     /**
      * Initialise all flow in FlowNetwork to 0
-     * @param inducedFlow
+     * @param inducedFlow The induced flow to init
      */
     private void initFlow(FlowNetwork inducedFlow) {
         for (Edge e : inducedFlow.graf.getEdgeList()) {
@@ -519,9 +510,7 @@ public class FlowNetwork {
             dfs_visit(chosenPath, new Node(1), color, index, this);
         }
 
-        if(chosenPath.contains(new Node(999))) return true;
-
-        return false;
+        return chosenPath.contains(new Node(999));
     }
 
     /**
@@ -534,9 +523,7 @@ public class FlowNetwork {
         List<Node> successor = fn.graf.getSuccessors(u);
 
 
-        successor.sort((n1, n2) -> {
-            return fn.graf.getEdge(u.getId(), n1.getId()).getWeight() - fn.graf.getEdge(u.getId(), n2.getId()).getWeight();
-        });
+        successor.sort(Comparator.comparingInt(n -> fn.graf.getEdge(u.getId(), n.getId()).getWeight()));
 
         //browse successor and break the dfs search if we find t
         if(successor.contains(new Node(999))) {
