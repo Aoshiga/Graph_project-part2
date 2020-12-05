@@ -2,11 +2,10 @@ import maximumFlow.FlowNetwork;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         try {
             File f = new File("./resources/input/test.dot");
             FlowNetwork flowNetwork = new FlowNetwork(f);

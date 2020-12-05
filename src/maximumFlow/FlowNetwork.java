@@ -285,6 +285,15 @@ public class FlowNetwork {
         }
     }
 
+    public static void emptyOutput() {
+        File output = new File("./resources/output");
+        File[] files = output.listFiles();
+        assert files != null;
+        for(File f: files) {
+            f.delete();
+        }
+    }
+
     /**
     input : G = (V,E) the flow network graph, s belonging to V the source state of the
     network, t belonging to V the sink state of the network
