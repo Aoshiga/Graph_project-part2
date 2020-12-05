@@ -11,11 +11,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
-// - fonction d'algo Ford principale
-// - fonction qui calcule le graphe résiduel
-// - fonction qui trouve un chemin augmenté dans un graphe augmenté
-// - fonction qui augmente le flow du flowNetwork
-// - toDotString doit prendre en compte deux cas : graphe résiduel et flowNetwork
 public class FlowNetwork {
     public Graf graf;
     public List<Flow> flows;
@@ -258,6 +253,15 @@ public class FlowNetwork {
         }
     }
 
+    public static void emptyOutput() {
+        File output = new File("./resources/output");
+        File[] files = output.listFiles();
+        assert files != null;
+        for(File f: files) {
+            f.delete();
+        }
+    }
+
     /**
     input : G = (V,E) the flow network graph, s belonging to V the source state of the
     network, t belonging to V the sink state of the network
@@ -271,6 +275,9 @@ public class FlowNetwork {
     end
      */
     public int fordFulkerson() {
+
+        emptyOutput();
+
         FlowNetwork inducedFlow = this.clone();
         initFlow(inducedFlow);
 
@@ -280,21 +287,13 @@ public class FlowNetwork {
         LinkedHashSet<Node> path = new LinkedHashSet<>();
         while(residualNetwork.existsAugmentingPathDFS(path)) {
             if(cpt == 10) break;
-            // toDotFile(residualNetwork, path)
             // search flow capacity
             int flowCapacity = searchFlowCapacity(path, residualNetwork);
             increaseFlow(inducedFlow, path, flowCapacity);
             //Complete the induced flow with the maximum flow capacity we find
-
-//            System.out.println(inducedFlow.toDotString(cpt));
             inducedFlow.toDotFile(cpt);
-
             residualNetwork.toDotFile(cpt, path, flowCapacity);
             residualNetwork = makeResidual(inducedFlow);
-
-
-//            System.out.println(residualNetwork.toDotString(cpt, path, flowCapacity));
-
             cpt++;
         }
 

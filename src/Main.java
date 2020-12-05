@@ -10,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         try {
-            File f = new File("./resources/input/lectureFlowNetwork.dot");
+            File f = new File("./resources/input/test.dot");
             FlowNetwork flowNetwork = new FlowNetwork(f);
 //            flowNetwork.addFlow(new Flow(new Node(0), new Node(1), 11));
 //            flowNetwork.addFlow(new Flow(new Node(1), new Node(3), 4));
