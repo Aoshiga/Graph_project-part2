@@ -274,7 +274,7 @@ public class FlowNetwork {
         return f
     end
      */
-    public int fordFulkerson() {
+    public int fordFulkerson() throws Exception {
 
         emptyOutput();
 
@@ -286,7 +286,9 @@ public class FlowNetwork {
 
         LinkedHashSet<Node> path = new LinkedHashSet<>();
         while(residualNetwork.existsAugmentingPathDFS(path)) {
-            if(cpt == 10) break;
+            if(cpt >= 10) {
+                throw new Exception("To much file created: stop programm Execution");
+            }
             // search flow capacity
             int flowCapacity = searchFlowCapacity(path, residualNetwork);
             increaseFlow(inducedFlow, path, flowCapacity);
@@ -328,12 +330,38 @@ public class FlowNetwork {
     public void increaseFlow(FlowNetwork fn, LinkedHashSet<Node> path, int flowCapacity) {
         Node prevN = null;
         int currentFlowCapacity;
+        int currentWeightCapacity;
 
         for(Node n : path) {
             if(prevN != null) {
                 if(!fn.existsFlow(fn.getFlow(prevN, n))) this.addFlow(new Flow(prevN, n, 0));
                 currentFlowCapacity = fn.getFlow(prevN, n).getValue();
-                fn.getFlow(prevN, n).setValue(flowCapacity + currentFlowCapacity);
+                Edge e = fn.graf.getEdge(prevN.getId(), n.getId());
+                if(e != null)
+                    currentWeightCapacity = fn.graf.getEdge(prevN.getId(), n.getId()).getWeight();
+                else currentWeightCapacity = 0;
+                if(currentFlowCapacity + flowCapacity > currentWeightCapacity) {
+                    fn.getFlow(prevN, n).setValue(currentWeightCapacity);
+                    currentFlowCapacity += flowCapacity;
+                    do {
+                        currentFlowCapacity -= currentWeightCapacity;
+                        for (Edge successor: fn.graf.getOutEdges(prevN)) {
+                            int successorFlow = fn.getFlow(successor).getValue();
+                            int successorWeight = successor.getWeight();
+
+                            if(successorWeight > successorFlow) {
+                                if(successorFlow + currentFlowCapacity <= successorWeight) {
+                                    currentFlowCapacity = 0;
+                                    fn.getFlow(successor).setValue(successorFlow + currentFlowCapacity);
+                                } else {
+                                    fn.getFlow(successor).setValue(successorWeight);
+                                    currentFlowCapacity -= (successorWeight-successorFlow);
+                                }
+                            }
+                        }
+                    } while (currentFlowCapacity != 0);
+                }
+                else fn.getFlow(prevN, n).setValue(flowCapacity + currentFlowCapacity);
             }
             prevN = n;
         }
@@ -358,28 +386,31 @@ public class FlowNetwork {
         for (Node from : rn.graf.getAllNodes()) {
             // for each out edge
             for (Edge outEdge : fn.graf.getOutEdges(from)) {
-                int flow;
-                if (fn.existsFlow(fn.getFlow(from, outEdge.getTo()))) flow = fn.getFlow(from, outEdge.getTo()).getValue();
-                else flow = 0;
-                int weight = outEdge.getWeight() - flow;
-                int reverse_flow = 0;
-                if (fn.existsFlow(fn.getFlow(outEdge.getTo(), from))) {
-                    reverse_flow += fn.getFlow(outEdge.getTo(), from).getValue();
-                    weight += reverse_flow;
-                }
-                // add an edge with weight equal to the weight of the out edge minus current flow on that edge in fn
-                if (weight > 0) {
-                    if (rn.graf.existsEdge(from.getId(), outEdge.getTo().getId())) {
-                        Edge edge = rn.graf.getEdge(from.getId(), outEdge.getTo().getId());
-                        edge.setWeight(weight);
-                    } else {
-                        rn.graf.addEdge(new Edge(from.getId(), outEdge.getTo().getId(), weight));
+                //if(!rn.graf.existsEdge(outEdge.getTo().getId(), from.getId())) {
+                    int flow;
+                    if (fn.existsFlow(fn.getFlow(from, outEdge.getTo())))
+                        flow = fn.getFlow(from, outEdge.getTo()).getValue();
+                    else flow = 0;
+                    int weight = outEdge.getWeight() - flow;
+                    int reverse_flow = 0;
+                    if (fn.existsFlow(fn.getFlow(outEdge.getTo(), from))) {
+                        reverse_flow += fn.getFlow(outEdge.getTo(), from).getValue();
+                        weight += reverse_flow;
                     }
-                }
-                // add a reverse edge with weight equal to the current flow on the outer edge in fn, if that flow is positive
-                if (flow > 0) {
-                    rn.graf.addEdge(new Edge(outEdge.getTo().getId(), from.getId(), flow));
-                }
+                    // add an edge with weight equal to the weight of the out edge minus current flow on that edge in fn
+                    if (weight > 0) {
+                        if (rn.graf.existsEdge(from.getId(), outEdge.getTo().getId())) {
+                            Edge edge = rn.graf.getEdge(from.getId(), outEdge.getTo().getId());
+                            edge.setWeight(weight);
+                        } else {
+                            rn.graf.addEdge(new Edge(from.getId(), outEdge.getTo().getId(), weight));
+                        }
+                    }
+                    // add a reverse edge with weight equal to the current flow on the outer edge in fn, if that flow is positive
+                    if (flow > 0) {
+                        rn.graf.addEdge(new Edge(outEdge.getTo().getId(), from.getId(), flow));
+                    }
+                //}
             }
         }
         return rn;
@@ -473,8 +504,6 @@ public class FlowNetwork {
      */
     private void dfs_visit(LinkedHashSet<Node> chosenPath, Node u, Graf.color[] color, Map<Node, Integer> index, FlowNetwork fn) {
         chosenPath.add(u);
-        if(u.getId() == 999) System.out.println("999");
-        else System.out.print(u.getId()-1  + " - ");
 
         color[index.get(u)] = Graf.color.GREY;
         List<Node> successor = fn.graf.getSuccessors(u);
@@ -489,9 +518,9 @@ public class FlowNetwork {
             }
         }
         color[index.get(u)] = Graf.color.BLACK;
+
         if(!chosenPath.contains(new Node(999))){
             chosenPath.remove(u);
-            System.out.print("(" + (u.getId()-1) + ")");
         }
     }
 

@@ -1,5 +1,3 @@
-import m1graf2020.Node;
-import maximumFlow.Flow;
 import maximumFlow.FlowNetwork;
 
 import java.io.File;
@@ -24,6 +22,8 @@ public class Main {
         } catch (FileNotFoundException e) {
             System.out.println("Erreur : Aucun fichier trouvé");
             //System.out.println(e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
