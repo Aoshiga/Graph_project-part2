@@ -222,10 +222,22 @@ public class FlowNetwork {
                 .append("\n\tResidual Capacity: ")
                 .append(flowCapacity)
                 .append("\";\n");
+
+        List<Node> ln = new ArrayList<Node>(path);
+        boolean pathBrowser = false;
         for (Map.Entry<Node, List<Node>> entry : graf.getAdjList().entrySet()) {
             Collections.sort(entry.getValue());
 
             for (Node to : entry.getValue()) {
+                int pos = ln.indexOf(entry.getKey());
+                if(ln.contains(entry.getKey()) && ln.contains(to)) {
+                    if(pos+1 < ln.size()) {
+                        if (ln.get(pos + 1).getId() == to.getId()) {
+                            pathBrowser = true;
+                        }
+                    }
+                }
+
                 dot.append("\t");
                 if (entry.getKey().getId() == 1) dot.append("s");
                 else if (entry.getKey().getId() == biggestId) dot.append("t");
@@ -234,9 +246,18 @@ public class FlowNetwork {
                 if (to.getId() == 1) dot.append("s");
                 else if (to.getId() == biggestId) dot.append("t");
                 else dot.append(to.getId() -1 );
+                int currentWeight = graf.getEdge(entry.getKey().getId(), to.getId()).getWeight();
                 dot.append(" [label=\"")
-                    .append(graf.getEdge(entry.getKey().getId(), to.getId()).getWeight())
-                    .append("\"];\n");
+                    .append(currentWeight);
+                if(pathBrowser) {
+                    if(currentWeight == flowCapacity) {
+                        dot.append("\", fontcolor=\"red");
+                    }
+                    dot.append("\", penwidth=3, color=\"blue");
+                }
+                dot.append("\"];\n");
+
+                pathBrowser = false;
             }
         }
         dot.append("}");
@@ -371,58 +392,6 @@ public class FlowNetwork {
         }
     }
 
-
-    /*public void increaseFlow(FlowNetwork fn, LinkedHashSet<Node> path, int flowCapacity) {
-        Node prevN = null;
-        int currentFlowCapacity;
-        int currentWeightCapacity;
-
-        System.out.println(path);
-
-        for(Node n : path) {
-            if(prevN != null) {
-                if(!fn.existsFlow(fn.getFlow(prevN, n))) this.addFlow(new Flow(prevN, n, 0));
-                currentFlowCapacity = fn.getFlow(prevN, n).getValue();
-                Edge e = fn.graf.getEdge(prevN.getId(), n.getId());
-                if(e != null)
-                    currentWeightCapacity = fn.graf.getEdge(prevN.getId(), n.getId()).getWeight();
-                else currentWeightCapacity = 0;
-                if(currentFlowCapacity + flowCapacity > currentWeightCapacity) {
-                    System.out.println("currentFlowCapacity + flowCapacity > currentWeightCapacity");
-                    fn.getFlow(prevN, n).setValue(currentWeightCapacity);
-                    currentFlowCapacity += flowCapacity;
-                    currentFlowCapacity -= currentWeightCapacity;
-
-                    for (Edge successor: fn.graf.getOutEdges(prevN)) {
-                        System.out.println(successor);
-                        int successorFlow = fn.getFlow(successor).getValue();
-                        int successorWeight = successor.getWeight();
-                        System.out.println("currentFlowCapacity " + currentFlowCapacity);
-                        System.out.println("successorFlow " + successorFlow);
-                        System.out.println("successorWeight " + successorWeight);
-
-
-                        if(successorWeight > successorFlow) {
-                            System.out.println("successorWeight > successorFlow");
-                            if(successorFlow + currentFlowCapacity <= successorWeight) {
-                                System.out.println("if");
-                                fn.getFlow(successor).setValue(successorFlow + currentFlowCapacity);
-                                currentFlowCapacity = 0;
-
-                            } else {
-                                System.out.println("else");
-                                fn.getFlow(successor).setValue(successorWeight);
-                                currentFlowCapacity -= (successorWeight-successorFlow);
-                            }
-                        }
-                    }
-                }
-                else fn.getFlow(prevN, n).setValue(flowCapacity + currentFlowCapacity);
-            }
-            prevN = n;
-        }
-    }*/
-
     /**
      * Get the maximum flow of a flow network
      * @return The maximum flow value
@@ -447,7 +416,7 @@ public class FlowNetwork {
         for (Node from : rn.graf.getAllNodes()) {
             // for each out edge
             for (Edge outEdge : fn.graf.getOutEdges(from)) {
-                //if(!rn.graf.existsEdge(outEdge.getTo().getId(), from.getId())) {
+                if(!rn.graf.existsEdge(outEdge.getTo().getId(), from.getId())) {
                     int flow;
                     if (fn.existsFlow(fn.getFlow(from, outEdge.getTo())))
                         flow = fn.getFlow(from, outEdge.getTo()).getValue();
@@ -471,7 +440,7 @@ public class FlowNetwork {
                     if (flow > 0) {
                         rn.graf.addEdge(new Edge(outEdge.getTo().getId(), from.getId(), flow));
                     }
-                //}
+                }
             }
         }
         return rn;
